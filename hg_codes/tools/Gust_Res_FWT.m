@@ -1,8 +1,190 @@
-function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing_right, Tailwing_left, Verticalwing, Aircraft, FEM_full]=Aircraft_Model(run_folder,x,Semi_span,Root_chord,LE_sweep,TE_sweep,BeamLoc,Fuselage_length, Wing_position, Engine_position, Horizontal_tail_position, Vertical_tail_position, Secondary_mass,Fuel_mass,Fuselage_total_mass)
+%% initial guesses
+
+x=[0.027271727	0.028170607	0.029030873	0.028870509	0.030299687	0.031496228	0.037214804	0.0402045	0.042006046	0.045425073	0.045066543	0.044433855	0.044061764	0.043657371	0.042976798	0.04090401	0.037839473	0.036353178	0.034373859	0.034904096	0.035869532	0.035481756	0.032934135	0.026823544	0.01575832	0.009067587	0.009076604	0.009115128	0.00916492	0.009227016	0.009302398	0.009159568	0.009178833	0.009206502	0.009262611	0.008962744	0.008651363	0.008316654	0.00795962	0.007575908	0.007172649	0.006811135	0.006602081	0.006327993	0.005931433	0.00542962	0.004795852	0.004005556	0.002994765	0.001739658	0.00011314	0.000113382	0.000114783	0.000116651	0.000119396	0.000123002	0.00011471	0.000114644	0.000114304	0.000115537	0.000102167	9.15E-05	8.25E-05	7.49E-05	6.78E-05	6.07E-05	5.47E-05	5.13E-05	4.71E-05	4.14E-05	3.46E-05	2.69E-05	1.85E-05	9.75E-06	3.55E-06
+];
+%% run_folder
+
+    run_folder = [
+        'D:\MATLAB_workspace\ALENA-master_v1\ALENA-master\hg_codes\Sizing_analysis\Result\AR19_FWT_eta60']; %[-], folder for exporting the NASTRAN model
+%     run_folder=['D:\MATLAB_workspace\ALENA-master_v1\ALENA-master\hg_codes\Sizing_analysis\Result\full_A321_sizing_streched_test1'];
+
+%% Tip configuration 
+
+    fold_angle  = -10;   %[deg],
+    flare_angle = 25;   %[deg],
+    fold_eta=0.60;
+    hinge_stiffness=1e-4;
+    
+%% Wing configurations for starboard wing
+  
+    Aspect_ratio=19; % Aspect ratio = 10.172 for A321 model
+    
+    Total_area=126;         % include two wing surface areas + floor size on the fuselage
+    Fuselage_width=4;       % dimeter of the fuselage
+  
+    Wing_span = sqrt(Aspect_ratio*Total_area);
+    BeamLoc = 0.4;          % choose a spar location: 0 --> 1
+    Semi_span=(Wing_span-Fuselage_width)/2; % length of one wing: 16m for A321 model
+    
+    Root_chord =  Total_area/(1.064*Semi_span + 4);
+    LE_sweep=27;            % deg
+    
+    Wing_area = (Total_area - Fuselage_width*Root_chord)/2;
+    
+    Mid_chord=0.63685*Root_chord;
+    Tip_chord=0.2248*Root_chord;
+    
+    X0=Root_chord; 
+    X1=0.27*Semi_span*tan(27*pi/180) + Mid_chord;
+    X2=Semi_span*tan(27*pi/180) + Tip_chord;
+    
+    tan_TE_sweep1=(X1-X0)/(0.27*Semi_span);
+    tan_TE_sweep2=(X2-X1)/(0.73*Semi_span);
+    
+    TE_sweep1=atan(tan_TE_sweep1)*180/pi; % deg
+    TE_sweep2=atan(tan_TE_sweep2)*180/pi; % deg
+      
+ 
+    Taper_ratio=Tip_chord/Root_chord;
+    
+    Mean_cord_coefficient=(2/3)*(1+Taper_ratio+Taper_ratio^2)/(1+Taper_ratio);
+    
+    
+    %% obtain wingbox geometric properties 
+
+    Wingbox = awi.model.LiftingSurface;
+    Wingbox.Origin=[20,2,0];
+
+    %Use the Leading/Trailing edge sweep to define the planform
+    Wingbox.ActiveSet = 'sSet';
+
+    % Num of element
+    Wingbox.NumBeamElem = 23;
+
+    %Wing dimensions
+    Wingbox.SpanVector  = 'Y';
+    Wingbox.Span        = Semi_span;   %34.1/2;
+    Wingbox.LESweep     = [LE_sweep, LE_sweep];
+    Wingbox.LESweep_eta = [0, 1];
+    Wingbox.TESweep     = [TE_sweep1, TE_sweep2, TE_sweep2];
+    Wingbox.TESweep_eta = [0, 0.27, 1];
+    Wingbox.RootChord   = Root_chord;
+    
+    build(Wingbox)
+    
+    
+%     fold_angle  = -10;   %[deg],
+%     flare_angle = 25;   %[deg],
+%     fold_eta=0.75;
+    
+    
+    FWT = insertWingFold(Wingbox, 'FlareAngle', flare_angle, 'FoldAngle', fold_angle,'EtaFold',fold_eta);
+    FWT.HingeStiffness = [1e14 1e14 1e14 1e14 hinge_stiffness 1e14];
+    
+
+    NumSec=Wingbox.NumBeamElem+2;
+    
+    kink_eta=0.27*(1/fold_eta);
+
+    YData=Wingbox.YData;
+    SparWidth=Wingbox.Chord*0.5;
+    
+    End_H=0.12-(1-0.27-(1-fold_eta))*0.01/(1-0.27);
+
+    RootH=Wingbox.Chord(1)*0.15; % root thickness/chord = 0.15
+    MidH=Wingbox.Chord(2)*0.12;  % middle thickness/chord = 0.12
+    TipH=Wingbox.Chord(end)*End_H;% tip thickness/chord = 0.11
 
 
-   % calculate mean aerodynamic chord
-    Tip_chord=Root_chord-(Semi_span*tan(LE_sweep*pi/180)-Semi_span*0.73*tan(TE_sweep*pi/180));
+    % set up eta values
+    elnum=Wingbox.NumBeamElem + 1; % total number of beam elements along the wing
+    Num_seg1=ceil(elnum*0.27); % number of elements in the inboard section
+    Num_seg2=elnum - Num_seg1; % number of elements in the outboard section
+
+    Num_sec1=Num_seg1+1;    % number of sections in the inboard section
+    Num_sec2=Num_seg2+1;    % number of sections in the outboard section
+
+    eta1_=linspace(0,0.27, Num_sec1);
+    eta2_=linspace(0.27,1,Num_sec2);
+    etaS=[eta1_(1:end-1),eta2_(1:end)];
+
+    RData=Wingbox.RData;
+    eta_R=RData/RData(end);
+    eta_Y=YData/YData(end);
+    etaRS=interp1(eta_Y,eta_R,etaS);
+    
+    etaRL=etaRS*RData(end);
+
+    Width_var=interp1(RData/RData(end),SparWidth,etaRS);
+    Height_var=interp1(RData/RData(end),0.79*[RootH,MidH,TipH],etaRS);
+   
+  
+%     draw(Wingbox)
+  
+    
+    %% A321 Fuselage length, wing positions, engine position
+    Fuselage_length=45;
+    Wing_position=20;
+    Horizontal_tail_position=42;
+    Vertical_tail_position=41;
+    Engine_position=4.29;
+         
+
+    %% A321 mass configurations 
+
+    Payload_max=25000; % kg
+    Fuel_fraction=0.723; % percentage of fuel in the tank
+    
+    Fuel_capacity=32940; % L
+
+    MTOW=93500; % maximum take off mass
+    OWE=48500;  % Operating empty mass
+    MWE=44057;  % Manufacture's empty mass
+    MZF=73000;  % Maxumum zero fuel mass
+    Fuselage_shell_mass= 2*pi*2*0.004*2800*44.5;
+
+  
+    Engine_mass=7362/2; % kg
+    Pylon=1239/2; % kg
+    Horizontal_tail=682; % kg
+    Vertical_tail=522; % kg
+    
+    Wing_mass0=1912.1;
+    
+    Secondary_mass0=835.2;
+    
+    Wing_total_mass0=Wing_mass0+Secondary_mass0;
+    
+    Fuselage_structure_mass=OWE - 2*Wing_total_mass0 - Horizontal_tail - Vertical_tail - Engine_mass*2 - Pylon*2 - Fuselage_shell_mass;
+    
+    [Fuel_mass,Fuselage_total_mass]= Lumped_masses(Fuel_fraction,Fuel_capacity,Payload_max,Fuselage_structure_mass);
+    
+    [~, Secondary_mass, ~]=Wing_masses_v1(x,Height_var,Width_var,etaRL,MTOW,Wing_area,LE_sweep,Semi_span);
+    
+    OWE_no_wing=OWE- 2*Wing_total_mass0-Engine_mass*2 - Pylon*2;
+    
+    total_attachment_mass=Pylon*2 + Engine_mass*2;
+
+    
+    %% Material properties : Al7075
+    
+    Yield_strength = 5.2e8;
+    
+    %% Folding wing tip 
+    
+    FWT_root_width=0.5*Wingbox.Chord(end);
+    FWT_root_height=TipH;
+    
+    FWT_tip_width=0.5*Tip_chord;
+    FWT_tip_height=Tip_chord*0.11;
+    
+    FWT_thickness = 0.002;
+    
+    
+    %% Model create
+     % calculate mean aerodynamic chord
+    Mid_chord=0.63685*Root_chord;
+    Tip_chord=0.2248*Root_chord;
     Taper_ratio=Tip_chord/Root_chord;
     Mean_cord_coefficient=(2/3)*(1+Taper_ratio+Taper_ratio^2)/(1+Taper_ratio);
     
@@ -15,7 +197,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
      %% Right root connector
 
     Connector_right = awi.model.LiftingSurface;
-    Connector_right.Name = 'Connector_right';
+    Connector_right.Name = 'Connector_Right';
     Connector_right.Origin=[Wing_position,0,0]; %15
 
     %Use the Leading/Trailing edge sweep to define the planform
@@ -91,7 +273,8 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     end
     
     % Aeropanel definition
-    Connector_right.AeroPanelLength=0.5;
+%     Connector_right.AeroPanelLength=0.5;
+    Connector_right.NumAeroPanel=10;
 
     build(Connector_right);
     
@@ -99,7 +282,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     %% Left root connector
     
     Connector_left = awi.model.LiftingSurface;
-    Connector_left.Name = 'Connector_left';
+    Connector_left.Name = 'Connector_Right';
     Connector_left.Origin=[Wing_position,0,0]; %15
     
     %Use the Leading/Trailing edge sweep to define the planform
@@ -166,7 +349,8 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     end
     
     % Aeropanel definition
-    Connector_left.AeroPanelLength=0.5;
+%     Connector_left.AeroPanelLength=0.5;
+    Connector_left.NumAeroPanel=10;
 
     build(Connector_left);
    
@@ -187,7 +371,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     Wingbox_right.Span        = Semi_span;   %34.1/2;
     Wingbox_right.LESweep     = [LE_sweep, LE_sweep];
     Wingbox_right.LESweep_eta = [0, 1];
-    Wingbox_right.TESweep     = [0, TE_sweep, TE_sweep];
+    Wingbox_right.TESweep     = [TE_sweep1, TE_sweep2, TE_sweep2];
     Wingbox_right.TESweep_eta = [0, 0.27, 1];
     Wingbox_right.RootChord   = Root_chord;
     
@@ -232,10 +416,131 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     
     build(Wingbox_right)
     
+    %% Aeropanel definition
     
+    % AeroPanelLength
+    %     NumAeroPanel
+    Wingbox_right.NumAeroPanel=10;
+    Wingbox_right.AeroPanelAR=2.5;
+    
+    %     Wingbox_right.AeroPanelLength=0.4;
+    
+    
+    %% initialise properties 
+    
+    Wingbox_right.A   =  [1,1];
+    Wingbox_right.A_eta=[0,1];
+    
+    Wingbox_right.I11 = [1,1];
+    Wingbox_right.I11_eta=[0,1];
+    
+    Wingbox_right.I22 = [1,1];
+    Wingbox_right.I22_eta = [0,1];
+    
+    Wingbox_right.J   = [1,1];
+    Wingbox_right.J_eta= [0,1];
+    
+    %% FWT right definition
+    
+%     fold_angle  = -10;   %[deg],
+%     flare_angle = 25;   %[deg],
+%     fold_eta=0.75;
+    
+    
+    FWT_R = insertWingFold(Wingbox_right, 'FlareAngle', flare_angle, 'FoldAngle', fold_angle,'EtaFold',fold_eta);
+    FWT_R.HingeStiffness = [1e14 1e14 1e14 1e14 hinge_stiffness 1e14];
+    
+    FWT_R.NumAeroPanel=10;
+    FWT_R.AeroPanelAR=2.5;
+    
+    FWT_R.NumBeamElem = 10;
+    
+    FWT_box_root=awi.model.BoxBeam;
+    FWT_box_root.BoxType='SymmetricBox';
+    FWT_box_root.Height=FWT_root_height;
+    FWT_box_root.Width=FWT_root_width;
+    
+    FWT_box_root.CoverThickness=FWT_thickness;
+    FWT_box_root.SparThickness=FWT_thickness;
+    
+    getGeometricProps(FWT_box_root)
+    
+    FWT_box_tip=awi.model.BoxBeam;
+    FWT_box_tip.BoxType='SymmetricBox';
+    FWT_box_tip.Height=FWT_tip_height;
+    FWT_box_tip.Width=FWT_tip_width;
+    
+    FWT_box_tip.CoverThickness=FWT_thickness;
+    FWT_box_tip.SparThickness=FWT_thickness;
+    
+    getGeometricProps(FWT_box_tip)
+    
+    FWT_eta=[0,1];
+    
+    FWT_R.A   =  [FWT_box_root.Abb, FWT_box_tip.Abb];
+    FWT_R.A_eta=FWT_eta;
+    
+    FWT_R.I11   =  [FWT_box_root.Izz, FWT_box_tip.Izz];
+    FWT_R.I11_eta=FWT_eta;
+    
+    FWT_R.I22   =  [FWT_box_root.Ixx, FWT_box_tip.Ixx];
+    FWT_R.I22_eta=FWT_eta;
+    
+    FWT_R.J   =  [FWT_box_root.Jbb, FWT_box_tip.Jbb];
+    FWT_R.J_eta=FWT_eta;
+    
+%     sc_num=numel(FWT_R.A);
+% %     FWT_eta=[0,1];
+%     
+%     FWT_R.A   =  ones(1,sc_num).*FWT_box.Abb;
+%     % FWT.A_eta=FWT_eta;
+%     
+%     FWT_R.I11 = ones(1,sc_num).*FWT_box.Izz;
+%     % FWT.I11_eta=FWT_eta;
+%     
+%     FWT_R.I22 = ones(1,sc_num).*FWT_box.Ixx;
+%     % FWT.I22_eta = FWT_eta;
+%     
+%     FWT_R.J   = ones(1,sc_num).*FWT_box.Jbb;
+%     % FWT.J_eta= FWT_eta;
+    
+    
+    %Make the material for FWT
+    
+    E_fwt  = 70e9; %[N/m^2], typical YM of aluminium
+    nu_fwt = 0.333;
+    rho_fwt=2810;
+    Mat_fwt = awi.model.Material;
+    Mat_fwt.E  = E_fwt;
+    Mat_fwt.Nu = nu_fwt;
+    Mat_fwt.G  = E_fwt / (2 * (1 + nu_fwt));
+    Mat_fwt.Rho=rho_fwt;
+    FWT_R.Material_eta = [0, 1];
+    FWT_R.Material     = [Mat_fwt, Mat_fwt];
+    
+    
+    % add point masses
+    for i=1:1:2
+        handle=strcat('PM_right','i');
+        handle=awi.model.PointMass;
+        handle.SOffset=0+i*0.2;
+        handle.Mass=1;
+        handle.Inertia11 = 0.1;
+        handle.Inertia22 =  0.1;
+        handle.Inertia33 =  0.1;
+        handle.Inertia12 =  0.1;
+        handle.Inertia23 =  0.1;
+        handle.Inertia13 =  0.1;
+        handle.MassGroup='Group1';
+        FWT_R.add(handle);
+        
+    end
+    
+  
     %% Create discretised boxbeam with varied cross section prperties along the span 
 
     NumSec=Wingbox_right.NumBeamElem+2;
+    kink_eta=0.27*(1/fold_eta);
     
     %%sizing variables ---------------------------------------------
     
@@ -260,14 +565,14 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
 
     % set up eta values
     elnum=Wingbox_right.NumBeamElem + 1; % total number of beam elements along the wing
-    Num_seg1=ceil(elnum*0.27); % number of elements in the inboard section
+    Num_seg1=ceil(elnum*kink_eta); % number of elements in the inboard section
     Num_seg2=elnum - Num_seg1; % number of elements in the outboard section
     
     Num_sec1=Num_seg1+1;    % number of sections in the inboard section
     Num_sec2=Num_seg2+1;    % number of sections in the outboard section
     
-    eta1_=linspace(0,0.27, Num_sec1);
-    eta2_=linspace(0.27,1,Num_sec2);
+    eta1_=linspace(0,kink_eta, Num_sec1);
+    eta2_=linspace(kink_eta,1,Num_sec2);
     etaS=[eta1_(1:end-1),eta2_(1:end)];
 
     RData=Wingbox_right.RData;
@@ -379,20 +684,9 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
 %     Wingbox_right.NSI=NSI_val;
 %     Wingbox_right.NSI_eta= eta_;
     
-    
-    
-    % Aeropanel definition
-    
-    % AeroPanelLength
-    %     NumAeroPanel
-%     Wingbox_right.NumAeroPanel=20;
-    Wingbox_right.AeroPanelLength=0.4;
-    
+
     build(Wingbox_right)
-    
-    
-%     FEM_test=convertToFE(Wingbox_right);
-%     draw(FEM_test)
+
 
     %% Mass definition
     
@@ -426,21 +720,22 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     %% attachments - engine
     
     Engine=awi.model.BluffBody;
-    Engine.Name='Engine_right';
+    Engine.Name='Engine';
     
     % cylinder body
     Engine.Radius=[1.4, 1.4, 1];
     Engine.Eta =  [0, 0.6, 1];
+    Engine.Length = 3.5;    
     
-    Engine.Length = 3.5;
     
-    %Engine location - at the kink 
+%     %Engine location 
 %     Y_eng=Wingbox_right.PanelCoords.LE.Y(2);
 %     X_eng=(Wingbox_right.PanelCoords.LE.X(2)+Wingbox_right.PanelCoords.TE.X(2))/2;
 %     Z_eng=(Wingbox_right.PanelCoords.LE.Z(2)+Wingbox_right.PanelCoords.TE.Z(2))/2;
 %     
 %     Engine.Origin = [X_eng-3.5, Y_eng, Z_eng];
-    
+
+
     % Engine location - user defined
     Y_Engine=Engine_position;
     
@@ -448,8 +743,8 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     Z_Engine=interp1(Wingbox_right.YData,Wingbox_right.ZData,Y_Engine);
     
     Engine.Origin = [X_Engine-Engine.Length+Wing_position, Y_Engine + 2, Z_Engine];
-    
 
+    
     %Make engine material
     E1  = 76e9; %[N/m^2],set as a rigid body
     nu = 0.333;
@@ -505,33 +800,29 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
       
     Wingbox_right.add(Engine)
     
-    
-    
-    %Control surfaces - flaps
-    flap_R=awi.model.ControlSurface;
-    flap_R.Eta=[0, 0.24];
-    flap_R.xLE=[0.8,0.8];
-    flap_R.xTE=[1,1];
-    flap_R.Max_def=0.1;
-    flap_R.Max_rate=0.1;
-    flap_R.HingeLine='LE';
-    flap_R.Label='FlapR';
-    flap_R.FaceColor='m';
-    
-%     flap_R.NumAeroPanel=10;
-    flap_R.AeroPanelLength=0.4;
-    
-    build(flap_R)
-    Wingbox_right.add(flap_R);
-    
-    Wingbox_right.ModelControlSurf = 1;
+
+%     %Control surfaces - flaps
+%     flap_R=awi.model.ControlSurface;
+%     flap_R.Eta=[0, 0.24];
+%     flap_R.xLE=[0.8,0.8];
+%     flap_R.xTE=[1,1];
+%     flap_R.Max_def=0.1;
+%     flap_R.Max_rate=0.1;
+%     flap_R.HingeLine='LE';
+%     flap_R.Label='FlapR';
+%     flap_R.FaceColor='m';
+%     
+% %     flap_R.NumAeroPanel=10;
+%     flap_R.AeroPanelLength=0.4;
+%     
+%     build(flap_R)
+%     Wingbox_right.add(flap_R);
+%     
+%     Wingbox_right.ModelControlSurf = 1;
     
     
     build(Wingbox_right);
     
-%     FEM_test=convertToFE(Wingbox_right);
-%     draw(Wingbox_right)
-%     draw(FEM_test)
 
 
 %% Wingbox 2 - left and control surf.
@@ -547,7 +838,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     Wingbox_left.Span        = -Semi_span;  
     Wingbox_left.LESweep     = [-LE_sweep, -LE_sweep];
     Wingbox_left.LESweep_eta = [0, 1];
-    Wingbox_left.TESweep     = [0, -TE_sweep, -TE_sweep];
+    Wingbox_left.TESweep     = [-TE_sweep1, -TE_sweep2, -TE_sweep2];
     Wingbox_left.TESweep_eta = [0, 0.27, 1];
     Wingbox_left.RootChord   = Root_chord;   
     
@@ -589,6 +880,86 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     Wingbox_left.Material     = [Mat_wing, Mat_wing];
     
     build(Wingbox_left)
+    
+    %% Aeropanel definition
+    
+    % AeroPanelLength
+    %     NumAeroPanel
+    Wingbox_left.NumAeroPanel=10;
+    Wingbox_left.AeroPanelAR=2.5;
+    %     Wingbox_left.AeroPanelLength=0.4;
+    
+    
+    %% initialise properties
+    
+    Wingbox_left.A   =  1;
+    Wingbox_left.A_eta=[0,1];
+    
+    Wingbox_left.I11 = 1;
+    Wingbox_left.I11_eta=[0,1];
+    
+    Wingbox_left.I22 = 1;
+    Wingbox_left.I22_eta = [0,1];
+    
+    Wingbox_left.J   = 1;
+    Wingbox_left.J_eta= [0,1];
+    
+    %% FWT left definition
+    
+    FWT_L = insertWingFold(Wingbox_left, 'FlareAngle', -flare_angle, 'FoldAngle', fold_angle,'EtaFold',fold_eta);
+    FWT_L.HingeStiffness = [1e14 1e14 1e14 1e14 hinge_stiffness 1e14];
+    
+    FWT_L.NumAeroPanel=10;
+    FWT_L.AeroPanelAR=2.5;
+    
+    FWT_L.NumBeamElem = 10;
+    
+    FWT_L.A   =  [FWT_box_root.Abb, FWT_box_tip.Abb];
+    FWT_L.A_eta=FWT_eta;
+    
+    FWT_L.I11   =  [FWT_box_root.Izz, FWT_box_tip.Izz];
+    FWT_L.I11_eta=FWT_eta;
+    
+    FWT_L.I22   =  [FWT_box_root.Ixx, FWT_box_tip.Ixx];
+    FWT_L.I22_eta=FWT_eta;
+    
+    FWT_L.J   =  [FWT_box_root.Jbb, FWT_box_tip.Jbb];
+    FWT_L.J_eta=FWT_eta;
+   
+%     FWT_L.A   =  ones(1,sc_num).*FWT_box.Abb;
+%     % FWT.A_eta=FWT_eta;
+%     
+%     FWT_L.I11 = ones(1,sc_num).*FWT_box.Izz;
+%     % FWT.I11_eta=FWT_eta;
+%     
+%     FWT_L.I22 = ones(1,sc_num).*FWT_box.Ixx;
+%     % FWT.I22_eta = FWT_eta;
+%     
+%     FWT_L.J   = ones(1,sc_num).*FWT_box.Jbb;
+%     % FWT.J_eta= FWT_eta;
+    
+    %Make the material for FWT
+    
+    FWT_L.Material_eta = [0, 1];
+    FWT_L.Material     = [Mat_fwt, Mat_fwt];
+        
+    % add point masses
+    for i=1:1:2
+        handle=strcat('PM_right','i');
+        handle=awi.model.PointMass;
+        handle.SOffset=0+i*0.2;
+        handle.Mass=1;
+        handle.Inertia11 = 0.1;
+        handle.Inertia22 =  0.1;
+        handle.Inertia33 =  0.1;
+        handle.Inertia12 =  0.1;
+        handle.Inertia23 =  0.1;
+        handle.Inertia13 =  0.1;
+        handle.MassGroup='Group1';
+        FWT_L.add(handle);
+        
+    end
+    
        
     %% Create discretised boxbeam with varied cross section prperties along the span 
 
@@ -613,12 +984,6 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
 %     Wingbox_left.NSI_eta= eta_;
     
        
-    % Aeropanel definition
-    
-    % AeroPanelLength
-    %     NumAeroPanel
-%     Wingbox_left.NumAeroPanel=20;
-    Wingbox_left.AeroPanelLength=0.4;
     
     build(Wingbox_left)
    
@@ -642,9 +1007,6 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
         Wingbox_left.add(handle);
 
     end
-    
-
-    
  
     %% attachments 2  - engine_left
     
@@ -654,7 +1016,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     % cylinder body
     Engine2.Radius=[1.4, 1.4, 1];
     Engine2.Eta =  [0, 0.6, 1];
-    Engine2.Length = 3.5; 
+    Engine2.Length = 3.5;
     
 %     %Engine location 
 %     Y_eng=Wingbox_left.PanelCoords.LE.Y(2);
@@ -663,11 +1025,8 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
 %     
 %     Engine2.Origin = [X_eng-3.5, Y_eng, Z_eng];
 
-    % Engine location - user defined
-    
     Engine2.Origin = [X_Engine-Engine.Length+Wing_position, -(Y_Engine + 2), Z_Engine];
-    
-    
+   
 %     Engine.XOffset=16.471008-3.5;
 %     Engine.YOffset=5.8170588;
 %     Engine.ZOffset=-2;
@@ -714,29 +1073,25 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
       
     Wingbox_left.add(Engine2)
     
-    %Control surfaces - flaps
-    flap_L=awi.model.ControlSurface;
-    flap_L.Eta=[0, 0.24];
-    flap_L.xLE=[0.8,0.8];
-    flap_L.xTE=[1,1];
-    flap_L.Max_def=0.1;
-    flap_L.Max_rate=0.1;
-    flap_L.HingeLine='LE';
-    flap_L.Label='FlapL';
-    flap_L.FaceColor='m';
-    
-    flap_L.AeroPanelLength=0.4;
-    
-    build(flap_R)
-    Wingbox_left.add(flap_L);
-    
-    Wingbox_left.ModelControlSurf = 1;
+%     %Control surfaces - flaps
+%     flap_L=awi.model.ControlSurface;
+%     flap_L.Eta=[0, 0.24];
+%     flap_L.xLE=[0.8,0.8];
+%     flap_L.xTE=[1,1];
+%     flap_L.Max_def=0.1;
+%     flap_L.Max_rate=0.1;
+%     flap_L.HingeLine='LE';
+%     flap_L.Label='FlapL';
+%     flap_L.FaceColor='m';
+%     
+%     flap_L.AeroPanelLength=0.4;
+%     
+%     build(flap_R)
+%     Wingbox_left.add(flap_L);
+%     
+%     Wingbox_left.ModelControlSurf = 1;
      
     build(Wingbox_left);
-    
-%     FEM_test=convertToFE(Wingbox_left);
-%     draw(Wingbox_left)
-%     draw(FEM_test)
     
 
     %% Create a BluffBody
@@ -846,7 +1201,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     %% Generate tailwing Right and control surf.
 
     Tailwing_right = awi.model.LiftingSurface;
-    Tailwing_right.Name = 'Tail_wing_right';
+    Tailwing_right.Name = 'Tail_Wing_Right';
 
     %Use the Leading/Trailing edge sweep to define the planform
     Tailwing_right.ActiveSet = 'sSet';
@@ -959,7 +1314,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
       %% Generate tailwing Left and control surf.
 
     Tailwing_left = awi.model.LiftingSurface;
-    Tailwing_left.Name = 'Tail_ring_left';
+    Tailwing_left.Name = 'Tail_Wing_Left';
 
     %Use the Leading/Trailing edge sweep to define the planform
     Tailwing_left.ActiveSet = 'sSet';
@@ -1119,7 +1474,7 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
 
     %% Build aircraft model
     Aircraft = awi.model.Aircraft;
-
+    
     Aircraft.add(Body);
     
     
@@ -1132,27 +1487,220 @@ function [Connector_right, Connector_left, Wingbox_right, Wingbox_left, Tailwing
     Body.add(Tailwing_right)
     Body.add(Tailwing_left)
     Body.add(Verticalwing)
-
-
+    
+    
     %The analysis methods require an 'awi.model.Aircraft' object
     % This is because some information is only known at the aircraft level,
     % e.g. all-up mass, reference span, area, etc.
     % Aircraft = awi.model.Aircraft;
     % Aircraft.add(LS);
-
+    
     Aircraft.RefArea  = sum([Wingbox_right.SurfaceArea, Wingbox_left.SurfaceArea,...
-        Connector_right.SurfaceArea,  Connector_left.SurfaceArea]);
+        Connector_right.SurfaceArea,  Connector_left.SurfaceArea, FWT_R.SurfaceArea, FWT_L.SurfaceArea]);
     
     
-    Aircraft.RefSpan  = Wingbox_right.Span*2+Connector_right.Span*2;
+    Aircraft.RefSpan  = Wingbox_right.Span*2 + Connector_right.Span*2 + FWT_R.Span*2;
     Aircraft.RefChord = Wingbox_right.RootChord*Mean_cord_coefficient; %mean aerodynamic chord = 0.697 for A321 wing;
-%     Aircraft.RefChord = Aircraft.RefArea/Aircraft.RefSpan; 
-
+    %     Aircraft.RefChord = Aircraft.RefArea/Aircraft.RefSpan;
+    
+    
     FEM_full = convertToFE(Aircraft);
+    
+    
+    GustLoadcase = awi.model.LoadCase;
+    GustLoadcase.Altitude   = 3000;
+    GustLoadcase.AcVelocity = 0.48*340;
+    GustLoadcase.AcMass = 500;
+    GustLoadcase.Mach = 0.48;
+    GustLoadcase.GustLength = linspace(18,214,7);%[18:20:214];
+    
+    % Gust direction: positive or negative hit
+    GustLoadcase.GustDirection=1;
+    
+    FlightPoint3=awi.model.FlightPoint;
+    FlightPoint3.Mach=0.48;
+    FlightPoint3.AcVelocity=FlightPoint3.Mach*340;
+    FlightPoint3.Altitude = 3000;
+    getFlightPointData(FlightPoint3,'ISA');
+    
 
-    % %Export it to a file
-    export(FEM_full, run_folder);
+    
+    %% find nodes
+    
+    NastranMethods1 = awi.methods.Nastran;
+    NastranMethods1.AnalysisModel = FEM_full;
+    
+    WingNodes=NastranMethods1.WingNode;
+    FWTNodes=NastranMethods1.FWTNode;
+    
+    WingNodes_All=[WingNodes(1:end-1),FWTNodes];
+    
+    X=[WingNodes.X];
+    X_FWT=[FWTNodes.X];
+    
+    Y_Data=X(2,:);
+    Y_Data_FWT=X_FWT(2,:);
+    Y_all=[Y_Data(1:end-1),Y_Data_FWT];
+    
+    NumSteps=201;
+    
+    file_name='\gust_analysis_g_3000ft_pos_1MC.h5';
+    
+    % data extraction
+    Gust_force=h5read(strcat(run_folder,file_name),'/NASTRAN/RESULT/ELEMENTAL/ELEMENT_FORCE/BEAM');
+    
+    % Find number of total nodes in the model
+    [~,ind]=find(Gust_force.GRID(1,:)==Gust_force.GRID(1));
+    NumGrid=ind(2)-ind(1)+1;
+    
+    % Find the number of gust in the load case
+    NumGust=numel(GustLoadcase.GustLength);
+    
+    % index for all the wing nodes
+    All_index=ismember([Gust_force.GRID(1,:)],[WingNodes(1).GID]);
+%     All_index=ismember([Gust_force.GRID(1,:)],1524);
+    
+    % loads at all wing nodes
+    All_Moment2=Gust_force.BM2(1,All_index);
+    All_Torque=Gust_force.TTRQ(1,All_index);
+    All_Shear2=Gust_force.TS2(1,All_index);
+    
+    % reshape data
+    
+    Moment2_matrix=reshape(All_Moment2,NumSteps,NumGust);
+    Torque_matrix=reshape(All_Torque,NumSteps,NumGust);
+    Shear_matrix=reshape(All_Shear2,NumSteps,NumGust);
+    
+    Max_moment=max(Moment2_matrix);
+    Min_moment=min(Moment2_matrix);
+    
+    Max_moment= Max_moment';
+    Min_moment=Min_moment';
+    
+    Max_torque=max(Torque_matrix);
+    Min_torque=min(Torque_matrix);
+    
+    Max_torque= Max_torque';
+    Min_torque=Min_torque';
+    
+%     Max_torque=max(Moment2_matrix);
+%     Min_torque=min(Moment2_matrix);
+
+
+%% peaks
+
+[Max_Moment_LC3,Min_Moment_LC3, Max_Torque_LC3, Min_Torque_LC3, Max_Shear_LC3, Min_Shear_LC3]=Gust_peaks(WingNodes,GustLoadcase,run_folder,'\gust_analysis_g_3000ft_pos_1MC.h5',NumSteps);
+    
+Y_all=Y_all';
+
+
+figure 
+plot(Y_all(1:34),Max_Moment_LC3,'b.')
+hold on 
+plot(Y_all(1:34),Min_Moment_LC3,'b.')
+
+    
+    
+% plot 
+data = readtable('G:\HAW_tip\data\Sizing_Results.xlsx','Sheet','AR19_gust_peak');
+
+figure 
+plot(data.Y1-2,data.M_max1,'b-s','MarkerFaceColor','b')
+% hold on 
+% plot(data.Y2,data.M_max2,'k-s','MarkerFaceColor','k')
+hold on 
+plot(data.Y3-2,data.M_max3,'r-s','MarkerFaceColor','r')
+% hold on 
+% plot(data.Y4,data.M_max4,'k-s','MarkerFaceColor','g')
+% hold on 
+% plot(data.Y5,data.M_max5,'r-s','MarkerFaceColor','r')
+hold on 
+plot(data.Y6-2,data.M_max6,'k-s','MarkerFaceColor','y')
+hold on 
+plot(data.Y1-2,data.M_min1,'b-s','MarkerFaceColor','b')
+% hold on 
+% plot(data.Y2,data.M_min2,'k-s','MarkerFaceColor','k')
+hold on 
+plot(data.Y3-2,data.M_min3,'r-s','MarkerFaceColor','r')
+hold on 
+% plot(data.Y4,data.M_min4,'k-s','MarkerFaceColor','g')
+% hold on 
+% plot(data.Y5,data.M_min5,'r-s','MarkerFaceColor','r')
+% hold on 
+plot(data.Y6-2,data.M_min6,'k-s','MarkerFaceColor','y')
+
+xlabel('Wing span distance (m)','Interpreter','latex','FontSize',12)
+ylabel('$\Delta$ Bending moment (Nm)','Interpreter','latex','FontSize',12)
+set(gcf,'Color','w');
+legend('Fold length 15 $\%$', 'Fold length 25 $\%$','Fold length 40 $\%$','Interpreter','latex','FontSize',12)
+
+axis([0 22.5 -1.5e6 1.5e6])
+
+
+figure 
+plot(data.Y1-2,data.V_max1,'b-s','MarkerFaceColor','b')
+% hold on 
+% plot(data.Y2,data.M_max2,'k-s','MarkerFaceColor','k')
+hold on 
+plot(data.Y3-2,data.V_max3,'r-s','MarkerFaceColor','r')
+% hold on 
+% plot(data.Y4,data.M_max4,'k-s','MarkerFaceColor','g')
+% hold on 
+% plot(data.Y5,data.M_max5,'r-s','MarkerFaceColor','r')
+hold on 
+plot(data.Y6-2,data.V_max6,'k-s','MarkerFaceColor','y')
+hold on 
+plot(data.Y1-2,data.V_min1,'b-s','MarkerFaceColor','b')
+% hold on 
+% plot(data.Y2,data.M_min2,'k-s','MarkerFaceColor','k')
+hold on 
+plot(data.Y3-2,data.V_min3,'r-s','MarkerFaceColor','r')
+hold on 
+% plot(data.Y4,data.M_min4,'k-s','MarkerFaceColor','g')
+% hold on 
+% plot(data.Y5,data.M_min5,'r-s','MarkerFaceColor','r')
+% hold on 
+plot(data.Y6-2,data.V_min6,'k-s','MarkerFaceColor','y')
+
+xlabel('Wing span distance (m)','Interpreter','latex','FontSize',12)
+ylabel('$\Delta$ Vertical shear force (N)','Interpreter','latex','FontSize',12)
+set(gcf,'Color','w');
+legend('Fold length 15 $\%$', 'Fold length 25 $\%$','Fold length 40 $\%$','Interpreter','latex','FontSize',12)
+
+axis([0 22.5 -1.5e5 1.5e5])
 
 
 
-end
+
+figure 
+plot(data.Y1-2,data.T_max1,'b-s','MarkerFaceColor','b')
+% hold on 
+% plot(data.Y2,data.M_max2,'k-s','MarkerFaceColor','k')
+hold on 
+plot(data.Y3-2,data.T_max3,'r-s','MarkerFaceColor','r')
+% hold on 
+% plot(data.Y4,data.M_max4,'k-s','MarkerFaceColor','g')
+% hold on 
+% plot(data.Y5,data.M_max5,'r-s','MarkerFaceColor','r')
+hold on 
+plot(data.Y6-2,data.T_max6,'k-s','MarkerFaceColor','y')
+hold on 
+plot(data.Y1-2,data.T_min1,'b-s','MarkerFaceColor','b')
+% hold on 
+% plot(data.Y2,data.M_min2,'k-s','MarkerFaceColor','k')
+hold on 
+plot(data.Y3-2,data.T_min3,'r-s','MarkerFaceColor','r')
+hold on 
+% plot(data.Y4,data.M_min4,'k-s','MarkerFaceColor','g')
+% hold on 
+% plot(data.Y5,data.M_min5,'r-s','MarkerFaceColor','r')
+% hold on 
+plot(data.Y6-2,data.T_min6,'k-s','MarkerFaceColor','y')
+
+xlabel('Wing span distance (m)','Interpreter','latex','FontSize',12)
+ylabel('$\Delta$ Torque (Nm)','Interpreter','latex','FontSize',12)
+set(gcf,'Color','w');
+legend('Fold length 15 $\%$', 'Fold length 25 $\%$','Fold length 40 $\%$','Interpreter','latex','FontSize',12)
+
+axis([0 22.5 -1.0e5 1.0e5])
+    

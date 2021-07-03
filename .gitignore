@@ -14,6 +14,8 @@
 
 *.log
 
+*.log*
+
 *.pdf
 
 SelfTest/
@@ -22,15 +24,23 @@ SelfTest/
 
 *.dat
 
+*.op4
+
 Models/FAME/
 
 BaselineTrimResults.mat
 
 *.f04
 
+*.f04*
+
 *.f06
 
+*.f06*
+
 *.h5
+
+*.h5*
 
 *.xdb
 

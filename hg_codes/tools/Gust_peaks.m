@@ -1,4 +1,4 @@
-function [Max_Moment,Min_Moment, Max_Torque, Min_Torque, Max_Shear, Min_Shear]=Gust_peaks(WingNodes,LoadCase,run_folder,file_name,NumSteps)
+function [Root_Delta, Wing_Delta]=Gust_peaks(WingNodes,LoadCase,run_folder,file_name,NumSteps)
 
     
     % data extraction 
@@ -22,16 +22,38 @@ function [Max_Moment,Min_Moment, Max_Torque, Min_Torque, Max_Shear, Min_Shear]=G
     Moment2_matrix=reshape(All_Moment2,numel(WingNodes)-1,NumGust*NumSteps);
     Torque_matrix=reshape(All_Torque,numel(WingNodes)-1,NumGust*NumSteps);
     Shear_matrix=reshape(All_Shear2,numel(WingNodes)-1,NumGust*NumSteps);
-
-    % delta values for bending moments, torque and shear forces
-    Max_Moment = max( Moment2_matrix, [], 2);
-    Min_Moment = min( Moment2_matrix, [], 2);
-
-    Max_Torque = max(Torque_matrix, [], 2);
-    Min_Torque = min(Torque_matrix, [], 2);
-
-    Max_Shear = max(Shear_matrix, [], 2);
-    Min_Shear = min(Shear_matrix, [], 2);
     
+    
+    % delta values for bending moments, torque and shear forces
+    Wing_Delta.Max_Moment = max( Moment2_matrix, [], 2);
+    Wing_Delta.Min_Moment = min( Moment2_matrix, [], 2);
+    
+    Wing_Delta.Max_Torque = max(Torque_matrix, [], 2);
+    Wing_Delta.Min_Torque = min(Torque_matrix, [], 2);
+    
+    Wing_Delta.Max_Shear = max(Shear_matrix, [], 2);
+    Wing_Delta.Min_Shear = min(Shear_matrix, [], 2);
+    
+    
+    % Root loading 
+    Root_Moment2=Moment2_matrix(1,:);
+    Root_Torque=Torque_matrix(1,:);
+    Root_Shear=Shear_matrix(1,:);
+    
+    Root_Moment2_matrix=reshape(Root_Moment2,NumSteps,NumGust);
+    Root_Torque_matrix=reshape(Root_Torque,NumSteps,NumGust);
+    Root_Shear_matrix=reshape(Root_Shear,NumSteps,NumGust);
+    
+    % delta values at the root
+    Root_Delta.Max_Moment = max( Root_Moment2_matrix);
+    Root_Delta.Min_Moment = min( Root_Moment2_matrix);
+    
+    Root_Delta.Max_Torque = max(Root_Torque_matrix);
+    Root_Delta.Min_Torque = min(Root_Torque_matrix);
+    
+    Root_Delta.Max_Shear = max(Root_Shear_matrix);
+    Root_Delta.Min_Shear = min(Root_Shear_matrix);
+    
+ 
 
 end

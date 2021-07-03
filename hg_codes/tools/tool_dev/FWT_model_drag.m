@@ -154,6 +154,8 @@ lift_wing_matrix(:,6:11)=lift_wing_matrix(:,6:11)/width_wing1;
 lift_wing_matrix(:,12:12+wing_sec2_num-1)=lift_wing_matrix(:,12:12+wing_sec2_num-1)/width_wing2;
 lift_wing_matrix(:,12+wing_sec2_num:12+wing_sec2_num+fwt_num-1)=lift_wing_matrix(:,12+wing_sec2_num:12+wing_sec2_num+fwt_num-1)/width_fwt;
 
+% panel_width_all=[];
+
 % lift per unit span
 lift_wing_var=sum(lift_wing_matrix);
 
@@ -225,11 +227,15 @@ plot(Y,lift_wing_var,'s-')
 figure 
 plot(Y_all,Lift_all,'b.')
 
-% figure 
-% plot(Y_all,dGdy,'b.')
 
 figure 
-plot(Y_all,wj,'b.')
+plot(Y_all,alphai,'b.')
+
+figure 
+plot(Y_all,alphai,'b.')
+
+figure 
+plot(Y_all,dGdy,'b.')
 
 
 figure 

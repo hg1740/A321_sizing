@@ -25,7 +25,7 @@ x=[0.027271727	0.028170607	0.029030873	0.028870509	0.030299687	0.031496228	0.037
 
     fold_angle  = -10;   %[deg],
     flare_angle = 25;   %[deg],
-    fold_eta=0.85;
+    fold_eta=0.60;
     hinge_stiffness=1e-4;
     
 %% Wing configurations for starboard wing

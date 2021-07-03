@@ -411,17 +411,17 @@ figure
 
 plot(cd_ref,cl,'k--','LineWidth',1)
 hold on 
-plot(cd_fwt1,cl,'b-s','LineWidth',1)
+plot(cd_fwt1,cl,'b-s','LineWidth',0.8,'MarkerFaceColor','b')
 hold on 
-plot(cd_fwt2,cl,'m-s','LineWidth',1)
+plot(cd_fwt2,cl,'k-s','LineWidth',0.8,'MarkerFaceColor','k')
 hold on 
-plot(cd_fwt3,cl,'s-','Color',[0.6350, 0.0780, 0.1840],'LineWidth',1)
+plot(cd_fwt3,cl,'m-s','LineWidth',0.8,'MarkerFaceColor','m')
 hold on 
-plot(cd_fwt4,cl,'g-s','LineWidth',1)
+plot(cd_fwt4,cl,'k-s','LineWidth',0.8,'MarkerFaceColor','g')
 hold on 
-plot(cd_fwt5,cl,'s-','Color',[0.4940, 0.1840, 0.5560],'LineWidth',1)
+plot(cd_fwt5,cl,'r-s','LineWidth',0.8,'MarkerFaceColor','r')
 hold on 
-plot(cd_fwt6,cl,'r-s','LineWidth',1)
+plot(cd_fwt6,cl,'k-s','LineWidth',0.8,'MarkerFaceColor','y')
 
 xlabel('Drag coefficient $C_D$','Interpreter','latex','FontSize',12)
 ylabel('Lift coefficient $C_L$','Interpreter','latex','FontSize',12)
@@ -463,6 +463,8 @@ plot(Eta,Cl,'bs')
 
 figure 
 plot(Eta,Cd,'bs')
+
+
 
 
 

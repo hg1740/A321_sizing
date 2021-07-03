@@ -11,7 +11,7 @@ x=[0.0272031060000000,0.0284343580000000,0.0295254410000000,0.0303307180000000,0
 %% run_folder
 
     run_folder = [
-        'D:\MATLAB_workspace\ALENA-master_v1\ALENA-master\hg_codes\Sizing_analysis\Result\full_A321_sizing_streched_test1']; %[-], folder for exporting the NASTRAN model
+        'D:\MATLAB_workspace\ALENA-master_v1\ALENA-master\hg_codes\Sizing_analysis\Result\AR19_ref_gust']; %[-], folder for exporting the NASTRAN model
 
      
 %% Wing configurations for starboard wing

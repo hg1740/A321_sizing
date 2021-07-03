@@ -5,7 +5,7 @@ x=[0.027203106	0.028434358	0.029525441	0.030330718	0.03132588	0.039891286	0.0445
 %% run_folder
 
     run_folder = [
-        'D:\MATLAB_workspace\Git_ALENA\ALENA-master\hg_codes\results\AR19_ref_drag']; %[-], folder for exporting the NASTRAN model
+        'C:\Git\A321_sizing\hg_codes\results\AR19_drag']; %[-], folder for exporting the NASTRAN model
 
    
 %% Wing configurations for starboard wing
@@ -1323,7 +1323,7 @@ x=[0.027203106	0.028434358	0.029525441	0.030330718	0.03132588	0.039891286	0.0445
     
     %% Lift and induced drag 
     
-    res_aeroF0 = mni.result.f06(strcat('D:\MATLAB_workspace\Git_ALENA\ALENA-master\hg_codes\results\AR19_ref_drag','/A321_36000ft_1g.f06')).read_aeroF;
+    res_aeroF0 = mni.result.f06(strcat(run_folder,'/A321_36000ft_1g.f06')).read_aeroF;
     
     idx0=1:40; %conn_right
     idx1 =391:450; % wing_right_bef_kink
@@ -1364,6 +1364,8 @@ x=[0.027203106	0.028434358	0.029525441	0.030330718	0.03132588	0.039891286	0.0445
     lift_wing_matrix(:,5:10)=lift_wing_matrix(:,5:10)/width_wing1;
     lift_wing_matrix(:,11:11+wing_sec2_num-1)=lift_wing_matrix(:,11:11+wing_sec2_num-1)/width_wing2;
     
+    panel_width=[width_conn*ones(1,4),width_wing1*ones(1,6),width_wing2*ones(1,wing_sec2_num)];
+    
     % lift per unit span
     lift_wing_var=sum(lift_wing_matrix);
     
@@ -1380,10 +1382,13 @@ x=[0.027203106	0.028434358	0.029525441	0.030330718	0.03132588	0.039891286	0.0445
     Y_left=sort(-Y);
     lift_wing_var_left=flip(lift_wing_var);
     lift_wing_abs_left=flip(lift_wing_abs);
+    panel_width_left=flip(panel_width);
     
     Y_all=[Y_left,Y]';
     Lift_all=[lift_wing_var_left,lift_wing_var];
     Lift_all_abs=[lift_wing_abs_left,lift_wing_abs];
+    
+    panel_width_all=[panel_width_left,panel_width];
     
     % calculate vorticity
     % Air conditions
@@ -1406,7 +1411,7 @@ x=[0.027203106	0.028434358	0.029525441	0.030330718	0.03132588	0.039891286	0.0445
     
     for i=1:length(Y_all)
         
-        w=-(1/(4*pi))*dGdy./(Y_all(i)-Y_all);
+        w=-(1/(4*pi))*dGdy * panel_width_all(i)./(Y_all(i)-Y_all);
         
         w=w( ~any( isnan( w ) | isinf( w ), 2 ),: );
         

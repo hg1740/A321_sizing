@@ -8,7 +8,7 @@
 
     %% Wing configurations for starboard wing
   
-     Aspect_ratio=19; % Aspect ratio = 10.172 for A321 model
+     Aspect_ratio=10.172; % Aspect ratio = 10.172 for A321 model
     
     Total_area=126;         % include two wing surface areas + floor size on the fuselage
     Fuselage_width=4;       % dimeter of the fuselage
@@ -833,12 +833,8 @@
 %     Wingbox_left.NSI=NSI_val;
 %     Wingbox_left.NSI_eta= eta_;
     
-      
-    
     build(Wingbox_left)
     
-   
-   
 
     %% Mass definition
     
@@ -860,9 +856,6 @@
 
     end
     
-
-    
- 
     %% attachments 2  - engine_left
     
     Engine2=awi.model.BluffBody;
@@ -1380,7 +1373,7 @@
     %% Generate the FEM 
 
     run_folder = [
-        'D:\MATLAB_workspace\ALENA-master_v1\ALENA-master\hg_codes\Sizing_analysis\Result\FWT_test_temp']; %[-], folder for exporting the NASTRAN model
+        'C:\Git\A321_sizing\hg_codes\results\test_temp']; %[-], folder for exporting the NASTRAN model
 
     % Convert to a finite element model and draw it
     FEM_full = convertToFE(Aircraft);

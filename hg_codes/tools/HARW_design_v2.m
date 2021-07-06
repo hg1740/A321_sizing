@@ -5,8 +5,8 @@
 
 Param=eval('A321');
 
-% % Select fold length 
-Param.FWT.Fold_eta=0.6;
+% Select fold length 
+Param.FWT.Fold_eta=0.8;
 
 % Update Wing properties
 Param.Wing.AR=22; % 10.172 for A321

@@ -1,4 +1,11 @@
 
+%% Note %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Request for .OP4 out-put is located at:   ALENA\+awi\+mthods\Nastran Line
+% 455 - 459 currently set for NASTRAN 2019, need to be adjusted for
+% different versions. 
+
+%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Load model parameters 
 Param=eval('A321');
 

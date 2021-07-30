@@ -7,6 +7,7 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     addParameter(p,'Hinge_Lock','on',@(x)any(validatestring(x,{'on','off'})))
     addParameter(p,'Altitude',36000,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
     addParameter(p,'March_Number',0.78,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
+    addParameter(p,'Gust_Eta',1,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
 
     parse(p,varargin{:})
 
@@ -57,7 +58,7 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     GustLoadcase.GustLength = linspace(18,214,7);%[18:20:214];
     
     % Gust direction: positive or negative hit
-    GustLoadcase.GustDirection=1;
+    GustLoadcase.GustDirection=p.Results.Gust_Eta;
     
     FlightPoint=awi.model.FlightPoint;
     FlightPoint.Mach=p.Results.March_Number;
@@ -110,12 +111,22 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     NumSteps=201;
     
     Result_file=strcat('\',p.Results.File_Name,'.h5');
+    
+    % extract peaks
     [Root_Delta, Wing_Delta]=Gust_peaks(All_nodes,GustLoadcase,run_folder,Result_file,NumSteps);
+    
+    % time history at root
+    [Moment_Root, Torque_Root, Shear_Root]=Gust_Thistory(WingNodes,GustLoadcase,run_folder,Result_file,NumSteps);
     
    % write output
     Loads.Y=Y_all;
     Loads.Wing_Delta=Wing_Delta;
     Loads.Root_Delta=Root_Delta;
+    
+    Loads.Time_Response.Root_Moment=Moment_Root;
+    Loads.Time_Response.Root_Torque=Torque_Root;
+    Loads.Time_Response.Root_Shear=Shear_Root;
+    
     
 
 

@@ -37,6 +37,7 @@ function [Static_Loads,Delta,Upper_Bound]=Stress_Analysis_HL(Param, run_folder)
     export(FEM_full, run_folder);
        
      %% cruising, 36000 ft, g
+     
     TrimLoadcase = awi.model.LoadCase;
     
     acMass = 500;
@@ -61,23 +62,42 @@ function [Static_Loads,Delta,Upper_Bound]=Stress_Analysis_HL(Param, run_folder)
     TrimLoadcase.CsDeflection=flap_angle*pi/180;
     
     
-    %% Gust threshold 25% of gust velocity 
+    %% Gust threshold: 30% of peak gust velocity 
 
     GustLoadcase = awi.model.LoadCase;
     GustLoadcase.Altitude   = 3000;
-    GustLoadcase3.AcVelocity = 0.48*340;
-    GustLoadcase3.AcMass = 500;
-    GustLoadcase3.Mach = 0.48;
-    GustLoadcase3.GustLength = linspace(18,214,7);
+    GustLoadcase.AcVelocity = 0.48*340;
+    GustLoadcase.AcMass = 500;
+    GustLoadcase.Mach = 0.48;
+    GustLoadcase.GustLength = linspace(18,214,7);
     
     % Gust direction: positive or negative hit
-    GustLoadcase.GustDirection=0.25;
+    GustLoadcase.GustDirection=0.3;
     
     FlightPoint=awi.model.FlightPoint;
     FlightPoint.Mach=0.48;
     FlightPoint.AcVelocity=FlightPoint.Mach*340;
     FlightPoint.Altitude = 3000;
     getFlightPointData(FlightPoint,'ISA');
+    
+    
+    %% Gust for hinge failure case
+    
+    GustLoadcase1 = awi.model.LoadCase;
+    GustLoadcase1.Altitude   = 3000;
+    GustLoadcase1.AcVelocity = 0.48*340;
+    GustLoadcase1.AcMass = 500;
+    GustLoadcase1.Mach = 0.48;
+    GustLoadcase1.GustLength = linspace(18,214,7);
+    
+    % Gust direction: positive or negative hit
+    GustLoadcase1.GustDirection=1;
+    
+    FlightPoint1=awi.model.FlightPoint;
+    FlightPoint1.Mach=0.48;
+    FlightPoint1.AcVelocity=FlightPoint.Mach*340;
+    FlightPoint1.Altitude = 3000;
+    getFlightPointData(FlightPoint1,'ISA');
     
       
     %% Write input
@@ -104,7 +124,9 @@ function [Static_Loads,Delta,Upper_Bound]=Stress_Analysis_HL(Param, run_folder)
 
     
     % Write gust
-    gustfile=NastranMethods1.writeGustFile(Aircraft, GustLoadcase, MassCases, FlightPoint, run_folder,'DatFilename','gust_threshold_3000ft_hinge_locked');
+    gustfile=NastranMethods.writeGustFile(Aircraft, GustLoadcase, MassCases, FlightPoint, run_folder,'DatFilename','gust_threshold_3000ft_hinge_locked');
+    
+    gustfile1=NastranMethods.writeGustFile(Aircraft, GustLoadcase1, MassCases, FlightPoint1, run_folder,'DatFilename','gust_hinge_failure_3000ft');
     
     
     %% Run analysis
@@ -119,7 +141,8 @@ function [Static_Loads,Delta,Upper_Bound]=Stress_Analysis_HL(Param, run_folder)
     delete(strcat(run_folder, '\*.op4'));
     
     NastranMethods.runNastran(trimFile);
-    NastranMethods1.runNastran(gustfile);
+    NastranMethods.runNastran(gustfile);
+    NastranMethods.runNastran(gustfile1);
     
     %% Load 
     
@@ -163,7 +186,7 @@ function [Static_Loads,Delta,Upper_Bound]=Stress_Analysis_HL(Param, run_folder)
     Torque_Loadcase1(end-10)=(Torque_Loadcase1(end-9)+Torque_Loadcase1(end-11))/2;
     
 
-    % extract gust result: Max-Min
+    % extract gust result (gust threshold): Max-Min
     NumSteps=201;
     [Root_Delta, Wing_Delta]=Gust_peaks(All_nodes,GustLoadcase,run_folder,'\gust_threshold_3000ft_hinge_locked.h5',NumSteps);
     
@@ -177,29 +200,86 @@ function [Static_Loads,Delta,Upper_Bound]=Stress_Analysis_HL(Param, run_folder)
     Wing_Delta.Max_Torque(end-9)=(Wing_Delta.Max_Torque(end-8) + Wing_Delta.Max_Torque(end-10))/2;
     Wing_Delta.Min_Torque(end-9)=(Wing_Delta.Min_Torque(end-8) + Wing_Delta.Min_Torque(end-10))/2;
     
+    
+    % extract gust result (hinge failure): Max-Min
+    [Root_Delta1, Wing_Delta1]=Gust_peaks(All_nodes,GustLoadcase,run_folder,'\gust_hinge_failure_3000ft.h5',NumSteps);
+    
+    % correction incremental stresses at hinge
+    Wing_Delta1.Max_Moment(end-9)=(Wing_Delta1.Max_Moment(end-8) + Wing_Delta1.Max_Moment(end-10))/2;
+    Wing_Delta1.Min_Moment(end-9)=(Wing_Delta1.Min_Moment(end-8) + Wing_Delta1.Min_Moment(end-10))/2;
+    
+    Wing_Delta1.Max_Shear(end-9)=(Wing_Delta1.Max_Shear(end-8) + Wing_Delta1.Max_Shear(end-10))/2;
+    Wing_Delta1.Min_Shear(end-9)=(Wing_Delta1.Min_Shear(end-8) + Wing_Delta1.Min_Shear(end-10))/2;
+    
+    Wing_Delta1.Max_Torque(end-9)=(Wing_Delta1.Max_Torque(end-8) + Wing_Delta1.Max_Torque(end-10))/2;
+    Wing_Delta1.Min_Torque(end-9)=(Wing_Delta1.Min_Torque(end-8) + Wing_Delta1.Min_Torque(end-10))/2;
+    
  
     % for sizing - upper bound
-    Moment_P2_pull_up= 1.5*Moment_P2_Loadcase1;
+    
+    RV_Factor=1.0;
+    
+    % Moment
+    
+    % 1g level flight
+    Moment_P2_pull_up= RV_Factor*Moment_P2_Loadcase1;
+    
+    % 1g + gust threshold
     Moment_P2_gust=Moment_P2_Loadcase1 + [Wing_Delta.Max_Moment; 0]';
-    Sizing_Moment_P2=max([Moment_P2_pull_up;Moment_P2_gust]);
     
-    Shear_P2_pull_up = 1.5*Shear_P2_Loadcase1;
+    % 1g + gust threshold (with safty factor of 1 instead of 1.5)
+    Moment_P2_gust1=(2/3).*(Moment_P2_Loadcase1 + [Wing_Delta1.Max_Moment; 0]');
+    
+    % find upper bound
+    Sizing_Moment_P2=max([Moment_P2_pull_up;Moment_P2_gust;Moment_P2_gust1]);
+    
+    
+    
+    % Shear
+    
+    % 1g level flight
+    Shear_P2_pull_up = RV_Factor*Shear_P2_Loadcase1;
+    
+    % 1g + gust threshold
     Shear_P2_gust=Shear_P2_Loadcase1 + [Wing_Delta.Max_Shear; 0]';
-    Sizing_Shear_P2=max([Shear_P2_pull_up;Shear_P2_gust]);
     
-    Torque_pull_up = 1.5*Torque_Loadcase1;
+    % 1g + gust threshold (with safty factor of 1 instead of 1.5)
+    Shear_P2_gust1=(2/3).*(Shear_P2_Loadcase1 + [Wing_Delta1.Max_Shear; 0]');
+    
+    % find upper bound
+    Sizing_Shear_P2=max([Shear_P2_pull_up;Shear_P2_gust;Shear_P2_gust1]);
+    
+    
+    
+    % Torque
+    
+    % 1g level flight
+    Torque_pull_up = RV_Factor*Torque_Loadcase1;
+    
+    % 1g + gust threshold
     Torque_gust=Torque_Loadcase1 + [Wing_Delta.Max_Torque; 0]';
-    Sizing_Torque=max([Torque_pull_up;Torque_gust]);
     
-    % Result output - static loads
+    % 1g + gust threshold (with safty factor of 1 instead of 1.5)
+    Torque_gust1=(2/3).*(Torque_Loadcase1 + [Wing_Delta1.Max_Torque; 0]');
+    
+    % find upper bound
+    Sizing_Torque=max([Torque_pull_up;Torque_gust;Torque_gust1]);
+    
+    
+    
+    
+    %%  Result output - static loads
     Static_Loads.Y=Y_all;
     Static_Loads.Moment_P2=Moment_P2_Loadcase1';
     Static_Loads.Shear_P2=Shear_P2_Loadcase1';
     Static_Loads.Torque=Torque_Loadcase1';
     
     % Result output - delta
-    Delta.Wing= Wing_Delta;
-    Delta.Root= Root_Delta;
+    Delta.Wing_Delta.Wing_threshold = Wing_Delta;
+    Delta.Wing_Delta.Wing_hinge_failure = Wing_Delta1;
+    
+    Delta.Root_Delta.Root_threshold = Root_Delta;
+    Delta.Root_Delta.Root_hinge_failure = Root_Delta1;
     
     % Result output - upper bound
     Upper_Bound.Moment_P2=Sizing_Moment_P2';

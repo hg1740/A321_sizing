@@ -377,11 +377,11 @@ function [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta
     FWT_R.Material     = [Mat_fwt, Mat_fwt];
     
     
-    % add point masses
+    % add point masses- distributed 
     for i=1:1:2
         handle=strcat('PM_right','i');
         handle=awi.model.PointMass;
-        handle.SOffset=0+i*0.2;
+        handle.SOffset=0.2+i*0.2;
         handle.Mass=1;
         handle.Inertia11 = 0.1;
         handle.Inertia22 =  0.1;
@@ -394,10 +394,14 @@ function [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta
         
     end
     
+    % hinge weight 
+    hinge_weight=awi.model.PointMass;
+    hinge_weight.SOffset=0;
+    hinge_weight.Mass=Param.Masses.Hinge;
+    FWT_R.add(hinge_weight);
+    
     varargout{1}=FWT_R;
-    
 
-    
     Kink=Param.Wing.Kink*(1/Param.FWT.Fold_eta);
         
         
@@ -432,7 +436,17 @@ function [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta
 
     % set up eta values
     elnum=Wingbox_right.NumBeamElem + 1; % total number of beam elements along the wing
-    Num_seg1=ceil(elnum*Kink); % number of elements in the inboard section
+    
+    if isfield(Param,'FWT')
+        Num_seg1=round(elnum*Kink); % number of elements in the inboard section
+        
+    else
+        
+        Num_seg1=ceil(elnum*Kink); % number of elements in the inboard section
+        
+    end
+          
+%     Num_seg1=ceil(elnum*Kink); % number of elements in the inboard section
     Num_seg2=elnum - Num_seg1; % number of elements in the outboard section
     
     Num_sec1=Num_seg1+1;    % number of sections in the inboard section
@@ -814,7 +828,7 @@ function [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta
          for i=1:1:2
              handle=strcat('PM_right','i');
              handle=awi.model.PointMass;
-             handle.SOffset=0+i*0.2;
+             handle.SOffset=0.2+i*0.2;
              handle.Mass=1;
              handle.Inertia11 = 0.1;
              handle.Inertia22 =  0.1;
@@ -826,6 +840,12 @@ function [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta
              FWT_L.add(handle);
              
          end
+         
+         % hinge mass 
+         hinge_weight_L=awi.model.PointMass;
+         hinge_weight_L.SOffset=0;
+         hinge_weight_L.Mass=Param.Masses.Hinge;
+         FWT_L.add(hinge_weight_L);
          
      end
     

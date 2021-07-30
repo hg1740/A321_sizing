@@ -1,4 +1,4 @@
-function [CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displacements_Res]=Static_Trim_v1(Param, run_folder, varargin)
+function [FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displacements_Res]=Static_Trim_v1(Param, run_folder, varargin)
 
 
     p=inputParser;

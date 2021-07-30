@@ -6,17 +6,17 @@
 Param=eval('A321');
 
 % Select fold length 
-Param.FWT.Fold_eta=0.8;
+Param.FWT.Fold_eta=1;
 
 % Update Wing properties
-Param.Wing.AR=22; % 10.172 for A321
+Param.Wing.AR=10; % 10.172 for A321
 
 Param.Wing.TotalArea=126;
 
-Res_Name='D22_results\Res_AR22_Eta_60';
+Res_Name='C:\Git\A321_sizing\hg_codes\Data\Sizing_with_upated_hinge_lock\A160\AR10\Res_AR10_Eta_100';
 
 % Update Initial Guess
-prevous_result=load('D22_results\Res_AR22_Eta_70_Model');
+prevous_result=load('D22_results\Res_AR10_Eta_100_Model');
 
 Param.Wing.Thickness=prevous_result.Param.Wing.Thickness;
 
@@ -261,7 +261,7 @@ run_folder = ['C:\Git\A321_sizing\hg_codes\results\AR_Eta_Study']; %[-], folder 
             
             record(counter,:)=[Param.Wing.Thickness,Param.FWT.Thickness(2:11),Param.FWT.Thickness(13:22),Param.FWT.Thickness(24:33)];
             
-            [Aircraft, Wingbox_right, FEM_full, Y_all, Box_dimensions, Box_CrossSec, Load_distribution, Wing_Delta, Root_Delta, Internal_Stresses]=Stress_Analysis_Fast(Param, run_folder);
+            [Aircraft, Wingbox_right, FEM_full, Y_all, Box_dimensions, Box_CrossSec, Load_distribution, Wing_Delta, Root_Delta, Internal_Stresses]=Stress_Analysis_Fast_v1(Param, run_folder);
             
             % collect internal stresses
             RVon_skn=Internal_Stresses.VonMise_skin;

@@ -98,6 +98,8 @@ Param.Layout.Vertical_Tail_Position=41;
 
 % Mass case
 
+Param.Masses.Hinge=200; %kg
+
 Param.Masses.Secondary_Mass=1200;
 
 Param.Masses.Fuselage_Structure=25000;

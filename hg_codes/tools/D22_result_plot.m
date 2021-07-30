@@ -105,7 +105,8 @@ plot(AR_mass,Wingbox_masses_Eta60,'ks','MarkerFaceColor','y')
 set(gcf,'Color','w')
 xlabel('Wing aspect ratio','Interpreter','latex','FontSize',12)
 ylabel('Wingbox mass (kg)','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 legend('No FWT','$\eta$=10$\%$','$\eta$=20$\%$','$\eta$=30$\%$','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
 
 
@@ -152,6 +153,8 @@ set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Out-of-plane bending stiffness (Nm$^2$)','Interpreter','latex','FontSize',12)
 axis([0 22.5 0 4e8])
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 legend('No FWT','$\eta$=10$\%$','$\eta$=20$\%$','$\eta$=30$\%$','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
 
 
@@ -182,8 +185,12 @@ hold on
 plot(Y_nodes_eta60-2,Wingbox_Izz_AR19_Eta60*E,'ks-','MarkerFaceColor','y')
 axis([0 22.5 0 5e9])
 set(gcf,'Color','w')
+set(gca,'TickLabelInterpreter','latex')
+
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('In-plane bending stiffness (Nm$^2$)','Interpreter','latex','FontSize',12)
+set(gca,'FontSize',14)
+
 legend('No FWT','$\eta$=10$\%$','$\eta$=20$\%$','$\eta$=30$\%$','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
 
 
@@ -756,7 +763,8 @@ plot(AR16_Eta60_Y_load(1:end-1)-2,AR16_Eta60_Wing_min,'k-s','MarkerFaceColor','y
 set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('$\Delta$ Moment (Nm)','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 legend('No FWT','','$\eta$=20$\%$','','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
 axis([0 20.05 -1.5e6 1.5e6]);
 % ax.PlotBoxAspectRatio = [1 0.5 0.5]
@@ -784,7 +792,8 @@ plot(AR16_Eta60_Y_load(1:end-1)-2,AR16_Eta60_Wing_torque_min,'k-o','MarkerFaceCo
 set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('$\Delta$ Torque (Nm)','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 legend('No FWT','','$\eta$=20$\%$','','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
 axis([0 20.05 -1.5e5 1.5e5]);
 
@@ -810,7 +819,8 @@ plot(AR16_Eta60_Y_load(1:end-1)-2,AR16_Eta60_Wing_shear_min,'k-v','MarkerFaceCol
 set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('$\Delta$ Vertical shear (N)','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 legend('No FWT','','$\eta$=20$\%$','','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
 axis([0 20.05 -1.5e5 1.5e5]);
 
@@ -914,8 +924,13 @@ plot(Y_all-2,sizing_moment,'r--','LineWidth',2.5)
 axis([0 20.5 0 5e6])
 legend('2.5g (36000ft)','2.5g (3000ft)','-g (3000ft)','g + 1MC (3000ft)','g - 1MC (3000ft)','Cruise (36000ft)','Sizing','Interpreter','latex','FontSize',12)
 set(gcf,'Color','w')
+
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Bending moment (Nm)','Interpreter','latex','FontSize',12)
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
+
+
 
 % shear forces
 figure 
@@ -952,6 +967,10 @@ legend('2.5g (36000ft)','2.5g (3000ft)','-g (3000ft)','g + 1MC (3000ft)','g - 1M
 set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Shear forces (N)','Interpreter','latex','FontSize',12)
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
+
+
 
 % Torque
 figure 
@@ -988,6 +1007,8 @@ axis([0 20.5 0 2.5e5])
 set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Torque (Nm)','Interpreter','latex','FontSize',12)
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 
 
 %% AR 16 load distribution with different Eta
@@ -1016,7 +1037,8 @@ set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Bending moment (Nm)','Interpreter','latex','FontSize',12)
 legend('No FWT','$\eta$=10$\%$','$\eta$=20$\%$','$\eta$=30$\%$','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 
 figure %shear 
 
@@ -1034,7 +1056,8 @@ set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Vertical shear force (N)','Interpreter','latex','FontSize',12)
 legend('No FWT','$\eta$=10$\%$','$\eta$=20$\%$','$\eta$=30$\%$','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 
 
 figure %torque
@@ -1053,7 +1076,8 @@ set(gcf,'Color','w')
 xlabel('Spanwise distance (m)','Interpreter','latex','FontSize',12)
 ylabel('Torque (Nm)','Interpreter','latex','FontSize',12)
 legend('No FWT','$\eta$=10$\%$','$\eta$=20$\%$','$\eta$=30$\%$','$\eta$=40$\%$','Interpreter','latex','FontSize',12)
-
+set(gca,'TickLabelInterpreter','latex')
+set(gca,'FontSize',14)
 
 %% range test
 

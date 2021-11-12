@@ -7,10 +7,16 @@
 
 %  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Load model parameters 
-Param=eval('A321');
+Param=eval('A321_v2');
 
 % Update Param 
 Param.FWT.Fold_eta=0.8;
+
+if Param.FWT.Fold_eta==1
+    
+    Param=rmfield(Param,'FWT');
+    
+end
 
 %% create run_folder
 if ~isfolder(fullfile(pwd,'bin'))
@@ -24,7 +30,7 @@ run_folder = fullfile(pwd,'bin');
 % Hinge_Lock : on / off
 
 % Run static trim analysis --------------------------------------
-[CDi,CD0,CL,k,Distribution,Load_distribution, Displacements_Res]=Static_Trim_v1(Param, run_folder, 'Load_Factor',2.5,'File_Name','Trim_analysis','Hinge_Lock','off');
+[FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displacements_Res,Box_dimensions, Box_CrossSec]=Static_Trim_v1(Param, run_folder, 'Load_Factor',2.5,'File_Name','Trim_analysis','Hinge_Lock','off');
 
 % Result plotting (e.g. Bending_moemnt in plane-2 (out of plane))
 figure 
@@ -35,7 +41,7 @@ ylabel('Out of plane bending moment (Nm)')
 
 
 % Run gust analysis (1mc)-----------------------------------------
-Loads=Gust_Analysis_v1(Param,run_folder,'File_Name','gust_test','March_Number',0.78,'Altitude',36000,'Hinge_Lock','off');
+Loads=Gust_Analysis_v1(Param,run_folder,'File_Name','gust_test','Mach_Number',0.78,'Altitude',36000,'Hinge_Lock','off');
 
 % Result plotting: incremental moment along the wingspan
 figure 
@@ -53,4 +59,11 @@ xlabel('Gust length (m)')
 ylabel('Incremental bending moment (Nm)')
 
 
+% Result plotting: time history incremental moment at the wing root
+figure 
+Time=linspace(0,2.5,201);
+plot(Time,Loads.Time_Response.Root_Moment,'-','LineWidth',1)
 
+xlabel('Time (s)')
+ylabel('Incremental bending moment (Nm)')
+set(gcf,'Color','w')

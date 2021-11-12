@@ -2,7 +2,7 @@
 
 %% Import sized wing model
 
-Wing_Model=load('C:\Git\A321_sizing\hg_codes\Data\Sizing_with_upated_hinge_lock\A140\AR10\Res_AR10_Eta_60_Model.mat');
+Wing_Model=load('C:\Git\A321_sizing\hg_codes\Data\Sizing_with_upated_hinge_lock\A126\AR16\Res_AR16_Eta_70_Model.mat');
 
 Param=Wing_Model.Param;
 
@@ -123,7 +123,7 @@ Param.Wing.AeroPanel_AR=2;
         
         %% FWT right definition
 
-        FWT_R = insertWingFold(Wingbox_right, 'FlareAngle', 12.5, 'FoldAngle', Param.FWT.Fold_angle,'EtaFold',Param.FWT.Fold_eta);
+        FWT_R = insertWingFold(Wingbox_right, 'FlareAngle', 12.5, 'FoldAngle', 0,'EtaFold',Param.FWT.Fold_eta);
 %         FWT_R.HingeStiffness = [1e14 1e14 1e14 1e14 Param.FWT.Hinge_Stiffness 1e14];
         FWT_R.HingeStiffness = [0 0 0 0 1 0];
         
@@ -691,7 +691,7 @@ Param.Wing.AeroPanel_AR=2;
         xlabel('Velocity (m/s)','Interpreter','latex','FontSize',12)
         ylabel('Frequency (Hz)','Interpreter','latex','FontSize',12)
         hold on
-        axis([150 600 0 30])
+        axis([150 500 0 30])
         %
     end
     grid on
@@ -730,70 +730,70 @@ set(gca,'FontSize',12)
 
 
     
-    %% Run the analysis- SOL 103
-    % insert SPC
-    fid = fopen(strcat(run_folder,'\NastranHeaderFile.dat'));
-    
-    cac = textscan( fid, '%s', 'Delimiter','\n', 'CollectOutput',true );
-    cac=cac{1};
-    fclose( fid )
-    
-    mid_line0=22;
-    mid_line1=33;
-    
-    end_line=length(cac)-1;
-    fid = fopen( strcat(run_folder,'\Modal_analysis.dat'), 'w' );
-    
-    % write existing head file
-    for jj = 1 : mid_line0
-        fprintf(fid,'%s\n',cac{jj})
-    end
-    
-    fprintf(fid,'SPC = 1 \r\n')
-    
-    for ii =  mid_line0 : mid_line1
-        fprintf(fid,'%s\n',cac{ii})
-    end
-    
-    % correct eigen value extraction methods
-    fprintf(fid, '%-8s%-8i%-8s%-#8.3g%-16s%-8i\r\n', 'EIGR', 117, 'MGIV', 0, blanks(16),30);
-    
-    
-    for ii =  mid_line1+2 : end_line
-        fprintf(fid,'%s\n',cac{ii})
-    end
-    
-    
-    %write spc part
-    line='$.1.....2.......3.......4.......5.......6.......7.......8.......9.......10......\r\n';
-    fprintf(fid,line);
-    
-    spc_format='%-8s%-8i%-8i%-8i\r\n';
-    fprintf(fid,spc_format,'SPC1',1,123456,1008);
-    
-    % write the end
-    fprintf(fid,'%s\n',cac{end})
-    
-    Sol103_file=strcat(run_folder,'\Modal_analysis.dat');
-    
-    
-    delete(strcat(run_folder, '\Modal_analysis.xdb'));
-    delete(strcat(run_folder, '\Modal_analysis.h5'));
-    delete(strcat(run_folder, '\Modal_analysis.log'));
-    delete(strcat(run_folder, '\Modal_analysis.f06'));
-    delete(strcat(run_folder, '\Modal_analysis.f04'));
-    delete(strcat(run_folder, '\Modal_analysis.op2'));
-    
-    delete(strcat(run_folder, '\Modal_analysis.xdb.*'));
-    delete(strcat(run_folder, '\Modal_analysis.h5.*'));
-    delete(strcat(run_folder, '\Modal_analysis.log.*'));
-    delete(strcat(run_folder, '\Modal_analysis.f06.*'));
-    delete(strcat(run_folder, '\Modal_analysis.f04.*'));
-    delete(strcat(run_folder, '\Modal_analysis.op2.*'));
-    
-    NastranMethods1.runNastran(Sol103_file);
-    
-    
+%     %% Run the analysis- SOL 103
+% %     insert SPC
+%     fid = fopen(strcat(run_folder,'\NastranHeaderFile.dat'));
+%     
+%     cac = textscan( fid, '%s', 'Delimiter','\n', 'CollectOutput',true );
+%     cac=cac{1};
+%     fclose( fid )
+%     
+%     mid_line0=22;
+%     mid_line1=33;
+%     
+%     end_line=length(cac)-1;
+%     fid = fopen( strcat(run_folder,'\Modal_analysis.dat'), 'w' );
+%     
+%     % write existing head file
+%     for jj = 1 : mid_line0
+%         fprintf(fid,'%s\n',cac{jj})
+%     end
+%     
+%     fprintf(fid,'SPC = 1 \r\n')
+%     
+%     for ii =  mid_line0 : mid_line1
+%         fprintf(fid,'%s\n',cac{ii})
+%     end
+%     
+%     % correct eigen value extraction methods
+%     fprintf(fid, '%-8s%-8i%-8s%-#8.3g%-16s%-8i\r\n', 'EIGR', 117, 'MGIV', 0, blanks(16),30);
+%     
+%     
+%     for ii =  mid_line1+2 : end_line
+%         fprintf(fid,'%s\n',cac{ii})
+%     end
+%     
+%     
+%     %write spc part
+%     line='$.1.....2.......3.......4.......5.......6.......7.......8.......9.......10......\r\n';
+%     fprintf(fid,line);
+%     
+%     spc_format='%-8s%-8i%-8i%-8i\r\n';
+%     fprintf(fid,spc_format,'SPC1',1,123456,1008);
+%     
+%     % write the end
+%     fprintf(fid,'%s\n',cac{end})
+%     
+%     Sol103_file=strcat(run_folder,'\Modal_analysis.dat');
+%     
+%     
+%     delete(strcat(run_folder, '\Modal_analysis.xdb'));
+%     delete(strcat(run_folder, '\Modal_analysis.h5'));
+%     delete(strcat(run_folder, '\Modal_analysis.log'));
+%     delete(strcat(run_folder, '\Modal_analysis.f06'));
+%     delete(strcat(run_folder, '\Modal_analysis.f04'));
+%     delete(strcat(run_folder, '\Modal_analysis.op2'));
+%     
+%     delete(strcat(run_folder, '\Modal_analysis.xdb.*'));
+%     delete(strcat(run_folder, '\Modal_analysis.h5.*'));
+%     delete(strcat(run_folder, '\Modal_analysis.log.*'));
+%     delete(strcat(run_folder, '\Modal_analysis.f06.*'));
+%     delete(strcat(run_folder, '\Modal_analysis.f04.*'));
+%     delete(strcat(run_folder, '\Modal_analysis.op2.*'));
+%     
+%     NastranMethods1.runNastran(Sol103_file);
+%     
+%     
 %     %% Result plot
 %     % load the model
 %     model = mni.import_matran(fullfile(run_folder,'modal_analysis.dat'));
@@ -816,17 +816,13 @@ set(gca,'FontSize',12)
 %     %
 %     % PRESS SPACE TO END THE ANIMATION
 %     %
-%     model.update()
+%     model.update('Scale',10)
 %     model.animate('Frequency',2,'Scale',10)
-% %     
+%     
     
     
     
-    
-    
-    
-    
-    
+      
 %% Damping 
 
 % damping=[0
@@ -1124,86 +1120,111 @@ set(gca,'FontSize',12)
     
     %% flutter speed contour
     
-%     x = linspace(-2,2);
-% y = linspace(0,4);
-% [X,Y] = meshgrid(x,y);
+% %     x = linspace(-2,2);
+% % y = linspace(0,4);
+% % [X,Y] = meshgrid(x,y);
+%     
+% AR=[10,13,16,19,22];
+% 
+% ETA=[0,10,20,30,40];
+% 
+% [AR_mesh,ETA_mesh] = meshgrid(AR,ETA);
+% 
+% Flutter_Speed_matrix=[428,343,320,270,261;...
+%     425,351,312,292,296;...
+%     500,397,345,332,309;...
+%     500,500,380,358,369;500,500,490,397,367];
+% 
+% Flutter_Speed_matrix140=[393,350,305,274,255;...
+%     431,365,320,285,258;...
+%     460,396,362,332,307;...
+%     590,486,431,372,354;...
+%     600,528,469,408,378];
+% 
+% Flutter_Speed_matrix160=[406,355,291,284,265;...
+%     411,370,315,287,263;...
+%     469,381,321,312,309;...
+%     600,439,396,366,353;...
+%     750,512,412,422,345];
+% 
+% 
+% figure 
+% 
+% % contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix,'ShowText','on')
+% contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix,'ShowText','on')
+% 
+% % colormap(jet(602))
+% 
+% colormap(flipud(parula(602)))
+% xlabel('Aspect ratio','interpreter','latex')
+% 
+% ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
+% set(gcf,'Color','w')
+% set(gca,'TickLabelInterpreter','latex')
+% set(gca,'FontSize',14)
+% 
+% 
+% 
+% figure 
+% 
+% Flutter_Speed_matrix140(abs(Flutter_Speed_matrix140)>=500)=500;
+% % contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix140,-[200,280,300,320,340,360,380,400,420,440,460,480,500],'ShowText','on')
+% contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix140,[200,280,300,320,340,360,380,400,420,440,460,480,500],'ShowText','on')
+% 
+% % colormap(jet(602))
+% 
+% colormap(flipud(parula(602)))
+% xlabel('Aspect ratio','interpreter','latex')
+% 
+% ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
+% set(gcf,'Color','w')
+% set(gca,'TickLabelInterpreter','latex')
+% set(gca,'FontSize',14)
+% 
+% 
+% 
+% figure 
+% 
+% Flutter_Speed_matrix160(abs(Flutter_Speed_matrix160)>=500)=500;
+% % contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix160,'ShowText','on')
+% contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix160, -[-200,-280,-300,-320,-340,-360,-380,-400,-420,-440,-460,-480,-500],'ShowText','on')
+% 
+% % colormap(jet(602))
+% % colormap('turbo(602)')
+% 
+% colormap(flipud(parula(602)))
+% 
+% % flipud
+% xlabel('Aspect ratio','interpreter','latex')
+% 
+% ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
+% set(gca,'FontSize',14)   
+% set(gcf,'Color','w')
+% set(gca,'TickLabelInterpreter','latex')
+% 
+% c=colorbar;
+% c.Location='southoutside';
+% c.Label.String = 'Flutter speed (m/s)';
+% c.Label.FontSize = 20;
+% c.FontSize=16;
+% c.TickLabelInterpreter='latex';
     
-AR=[10,13,16,19,22];
-
-ETA=[0,10,20,30,40];
-
-[AR_mesh,ETA_mesh] = meshgrid(AR,ETA);
-
-Flutter_Speed_matrix=[428,343,320,270,261;...
-    425,351,312,292,296;...
-    500,397,345,332,309;...
-    500,500,380,358,369;500,500,490,397,367];
-
-Flutter_Speed_matrix140=[393,350,305,274,255;...
-    431,365,320,285,258;...
-    460,396,362,332,307;...
-    590,486,431,372,354;...
-    600,528,469,408,378];
-
-Flutter_Speed_matrix160=[406,355,291,284,265;...
-    411,370,315,287,263;...
-    469,381,321,312,309;...
-    600,439,396,366,353;...
-    750,512,412,422,345];
-
-
-figure 
-
-contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix,'ShowText','on')
-
-colormap(jet(602))
-
-
-xlabel('Aspect ratio','interpreter','latex')
-
-ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
-set(gcf,'Color','w')
-set(gca,'TickLabelInterpreter','latex')
-set(gca,'FontSize',14)
-
-
-
-figure 
-
-Flutter_Speed_matrix140(Flutter_Speed_matrix140>=500)=500;
-contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix140,[200,280,300,320,340,360,380,400,420,440,460,480,500],'ShowText','on')
-
-colormap(jet(602))
-
-
-xlabel('Aspect ratio','interpreter','latex')
-
-ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
-set(gcf,'Color','w')
-set(gca,'TickLabelInterpreter','latex')
-set(gca,'FontSize',14)
-
-
-
-figure 
-
-Flutter_Speed_matrix160(Flutter_Speed_matrix160>=500)=500;
-contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix160,'ShowText','on')
-
-colormap(jet(602))
-
-
-xlabel('Aspect ratio','interpreter','latex')
-
-ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
-
-
-c=colorbar;
-c.Location='southoutside';
-c.Label.String = 'Flutter speed (m/s)';
-c.Label.FontSize = 20;
-c.FontSize=16;
-c.TickLabelInterpreter='latex';
-set(gca,'FontSize',14)   
-set(gcf,'Color','w')
-set(gca,'TickLabelInterpreter','latex')    
+% 
+% 
+% % subplot
+% 
+% subplot(2,2,1);
+% 
+% contourf(AR_mesh,ETA_mesh,Flutter_Speed_matrix,'ShowText','on')
+% 
+% colormap(jet(602))
+% % positionVector = [0.3, 0.1, 0.3, 0.2];
+% % subplot('Position',positionVector)
+% 
+% xlabel('Aspect ratio','interpreter','latex')
+% 
+% ylabel('Folding wingtip size, $\eta$ ($\%$)','interpreter','latex')
+% set(gcf,'Color','w')
+% set(gca,'TickLabelInterpreter','latex')
+% set(gca,'FontSize',14)
+% pbaspect([1 1 1])

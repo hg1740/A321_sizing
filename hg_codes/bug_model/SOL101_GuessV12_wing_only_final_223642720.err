@@ -1,0 +1,36 @@
+NServer_GetMessage() returned: *** SYSTEM INFORMATION MESSAGE 6498 (EXTERNAL Evaluator, Set Group Attributes)      API MESSAGE FOLLOWS.                                                            USER INFORMATION: Connect to External Evaluator.                                                  Group: GINOSRV, Database:  mode=i8                                              jid="C:\Git\A321_sizing\hg_codes\bug_model\BUG\set2\bdf                         s\SOL101_GuessV12_wing_only_final_223642720.bdf"                                scratch=no sys(444)=6  memory=740MB.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Ýß—/
+NServer_GetMessage() returned the following MSC.Nastran messages
+*** SYSTEM INFORMATION MESSAGE 6498 (EXTERNAL Evaluator, Set Group Attributes)  
+    API MESSAGE FOLLOWS.                                                        
+    USER INFORMATION: Connect to External Evaluator.                            
+                      Group: GINOSRV, Database:  mode=i8                        
+                      jid="C:\Git\A321_sizing\hg_codes\bug_model\BUG\set2\bdf   
+                      s\SOL101_GuessV12_wing_only_final_223642720.bdf"          
+                      scratch=no sys(444)=6  memory=740MB.                      
+                                                                                
+                                                                                
+                                                                                
+NServer_GetMessage() returned: *** SYSTEM INFORMATION MESSAGE 6498 (extclnt, extcmdstart)                          API MESSAGE FOLLOWS.                                                            USER INFORMATION: MSC.Nastran Startup Message.                                                    MSC Nastran beginning server job                                                sol101_guessv12_wing_only_final_223642720.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         Ýß—/
+NServer_GetMessage() returned the following MSC.Nastran messages
+*** SYSTEM INFORMATION MESSAGE 6498 (extclnt, extcmdstart)                      
+    API MESSAGE FOLLOWS.                                                        
+    USER INFORMATION: MSC.Nastran Startup Message.                              
+                      MSC Nastran beginning server job                          
+                      sol101_guessv12_wing_only_final_223642720.                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+NServer_GetMessage() returned: *** SYSTEM INFORMATION MESSAGE 6498 (extclnt, extcmdstart)                          API MESSAGE FOLLOWS.                                                            USER INFORMATION: MSC.Nastran Startup Message.                                                    MSC Nastran V2019.0 (Intel Windows 10 Home 6.2 9200)                            Wed Nov  3 13:18:10 2021                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           Ýß—/
+NServer_GetMessage() returned the following MSC.Nastran messages
+*** SYSTEM INFORMATION MESSAGE 6498 (extclnt, extcmdstart)                      
+    API MESSAGE FOLLOWS.                                                        
+    USER INFORMATION: MSC.Nastran Startup Message.                              
+                      MSC Nastran V2019.0 (Intel Windows 10 Home 6.2 9200)      
+                      Wed Nov  3 13:18:10 2021                                  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                

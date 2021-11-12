@@ -6,7 +6,7 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     addParameter(p,'File_Name','file_name',@(x)validateattributes(x,{'char'},{'nonempty'}))
     addParameter(p,'Hinge_Lock','on',@(x)any(validatestring(x,{'on','off'})))
     addParameter(p,'Altitude',36000,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
-    addParameter(p,'March_Number',0.78,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
+    addParameter(p,'Mach_Number',0.78,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
     addParameter(p,'Gust_Eta',1,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
 
     parse(p,varargin{:})
@@ -39,10 +39,10 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     % create Aircraft model
 
     if isfield(Param,'FWT')
-        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta, FWT_R]=Aircraft_Models_v1(Param);
+        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta, FWT_R]=Aircraft_Models_v3(Param);
 
     else
-        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta]=Aircraft_Models_v1(Param);
+        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta]=Aircraft_Models_v3(Param);
     end
 
     export(FEM_full, run_folder);
@@ -52,7 +52,7 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     
     GustLoadcase = awi.model.LoadCase;
     GustLoadcase.Altitude   = p.Results.Altitude;
-    GustLoadcase.Mach = p.Results.March_Number;
+    GustLoadcase.Mach = p.Results.Mach_Number;
     GustLoadcase.AcVelocity = GustLoadcase.Mach*340;
     GustLoadcase.AcMass = 500;
     GustLoadcase.GustLength = linspace(18,214,7);%[18:20:214];
@@ -61,7 +61,7 @@ function Loads=Gust_Analysis_v1(Param,run_folder,varargin)
     GustLoadcase.GustDirection=p.Results.Gust_Eta;
     
     FlightPoint=awi.model.FlightPoint;
-    FlightPoint.Mach=p.Results.March_Number;
+    FlightPoint.Mach=p.Results.Mach_Number;
     FlightPoint.AcVelocity=FlightPoint.Mach*340;
     FlightPoint.Altitude = p.Results.Altitude;
     getFlightPointData(FlightPoint,'ISA');

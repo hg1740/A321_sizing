@@ -1,4 +1,4 @@
-function [FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displacements_Res]=Static_Trim_v1(Param, run_folder, varargin)
+function [FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displacements_Res,Box_dimensions, Box_CrossSec]=Static_Trim_v1(Param, run_folder, varargin)
 
 
     p=inputParser;
@@ -6,6 +6,8 @@ function [FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displ
     addParameter(p,'Load_Factor',1,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
     addParameter(p,'File_Name','file_name',@(x)validateattributes(x,{'char'},{'nonempty'}))
     addParameter(p,'Hinge_Lock','on',@(x)any(validatestring(x,{'on','off'})))
+    addParameter(p,'Altitude',36000,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
+    addParameter(p,'Mach_Num',0.78,@(x)validateattributes(x,{'numeric'},{'scalar', 'nonnan', 'finite', 'real','nonempty'}))
 
     parse(p,varargin{:})
 
@@ -43,10 +45,10 @@ function [FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displ
     % create Aircraft model
     
     if isfield(Param,'FWT')
-        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta, FWT_R]=Aircraft_Models_v1(Param);
+        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta, FWT_R]=Aircraft_Models_v3(Param);
         
     else
-        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta]=Aircraft_Models_v1(Param);
+        [Aircraft, FEM_full, Wingbox_right, Box_dimensions, Box_CrossSec, Y_eta]=Aircraft_Models_v3(Param);
     end
     
     
@@ -56,9 +58,9 @@ function [FEM_full,CDi,CD0,CL,k,Aerodynamic_distribution,Load_distribution,Displ
     TrimLoadcase = awi.model.LoadCase;
     
     acMass = 500;
-    altitude          = 36000;
-    mach_number       = 0.78;
-    aircraft_velocity = 0.78*340;
+    altitude          = p.Results.Altitude;
+    mach_number       = p.Results.Mach_Num;
+    aircraft_velocity = mach_number*340;
     flap_angle=0;
     
     TrimLoadcase.Name = p.Results.File_Name;
